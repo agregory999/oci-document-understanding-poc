@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
+from time import perf_counter
 from typing import Any
 
 import streamlit as st
@@ -111,29 +113,11 @@ def render_minimal(result: DocumentResult) -> None:
         st.error("FAIL — no structured fields were extracted.")
 
     if result.side.lower() == "back":
-        st.subheader("Barcode output")
-        if result.barcode_text:
-            if result.barcode_source == "OCI barcode object":
-                st.caption("Source: OCI barcode object")
-            else:
-                st.warning(
-                    "Source: OCR fallback. This output is not proof that the "
-                    "PDF417 barcode was decoded."
-                )
-            rows = []
-            for line in result.barcode_text.splitlines():
-                label, separator, value = line.partition(": ")
-                rows.append(
-                    {
-                        "Field": label if separator else "Raw",
-                        "Value": value if separator else line,
-                    }
-                )
-            st.table(rows)
-            with st.expander("Raw formatted barcode text"):
-                st.code(result.barcode_text, language="text")
+        st.subheader("OCR text")
+        if result.text:
+            st.code(result.text, language="text")
         else:
-            st.info("No barcode output was returned from the back-image analysis.")
+            st.info("No OCR text was returned from the back-image analysis.")
 
 
 def render_full(result: DocumentResult) -> None:
@@ -206,26 +190,45 @@ def main() -> None:
             client = get_client(settings)
             image_suffix = "" if is_passport else "s"
             with st.spinner(f"Analyzing {document_label.lower()} image{image_suffix} with OCI…"):
-                front_result = analyze_document_image(
-                    client,
-                    settings,
-                    front_image,
-                    "passport" if is_passport else "front",
-                    document_type,
-                )
-                back_result = (
-                    None
-                    if is_passport
-                    else analyze_document_image(client, settings, back_image, "back", document_type)
-                )
+                start_time = perf_counter()
+                if is_passport:
+                    front_result = analyze_document_image(
+                        client, settings, front_image, "passport", document_type
+                    )
+                    back_result = None
+                else:
+                    with ThreadPoolExecutor(
+                        max_workers=2, thread_name_prefix="oci-document"
+                    ) as executor:
+                        front_future = executor.submit(
+                            analyze_document_image,
+                            client,
+                            settings,
+                            front_image,
+                            "front",
+                            document_type,
+                        )
+                        back_future = executor.submit(
+                            analyze_document_image,
+                            client,
+                            settings,
+                            back_image,
+                            "back",
+                            document_type,
+                        )
+                        front_result = front_future.result()
+                        back_result = back_future.result()
+                analysis_duration_seconds = perf_counter() - start_time
             st.session_state["document_results"] = tuple(
                 result for result in (front_result, back_result) if result is not None
             )
             st.session_state["document_result_model"] = model_label(selected_model, document_label)
             st.session_state["document_result_type"] = document_label
+            st.session_state["document_analysis_duration_seconds"] = analysis_duration_seconds
             LOGGER.info(
-                "%s analysis completed: primary_fields=%d secondary_fields=%d",
+                "%s document calls completed in %.2f sec: primary_fields=%d secondary_fields=%d",
                 document_label,
+                analysis_duration_seconds,
                 len(front_result.fields),
                 len(back_result.fields) if back_result else 0,
             )
@@ -244,6 +247,9 @@ def main() -> None:
         st.divider()
         result_model = st.session_state.get("document_result_model", "Unknown")
         st.caption(f"Results produced by: {result_model}")
+        duration = st.session_state.get("document_analysis_duration_seconds")
+        if duration is not None:
+            st.caption(f"Analyzed in {duration:.2f} sec")
         result_columns = st.columns(len(results))
         for column, result in zip(result_columns, results, strict=True):
             with column:

@@ -1,0 +1,26 @@
+region                          = "us-ashburn-1"
+home_region                     = "us-ashburn-1"
+# Required only when create_container_dynamic_group is true.
+tenancy_ocid                    = "ocid1.tenancy.oc1..replace-me"
+compartment_ocid                = "ocid1.compartment.oc1..replace-me"
+ocir_repository_compartment_ocid = "ocid1.compartment.oc1..replace-me"
+availability_domain             = "kIdk:US-ASHBURN-AD-1"
+vcn_ocid                        = "ocid1.vcn.oc1.iad.replace-me"
+public_subnet_ocid              = "ocid1.subnet.oc1.iad.replace-me"
+private_subnet_ocid             = "ocid1.subnet.oc1.iad.replace-me"
+container_private_ip            = "10.0.2.10"
+image_uri                       = "iad.ocir.io/namespace/identity-document-capture:replace-with-git-sha"
+container_shape                 = "CI.Standard.E5.Flex"
+
+# Set these when a tenancy administrator creates the Dynamic Group separately.
+# create_container_dynamic_group = false
+# container_dynamic_group_name   = "identity-document-capture-container-instances"
+# identity_domain_name            = "Default"
+
+# Restrict in real environments. A certificate is required to create the HTTPS listener.
+allowed_client_cidrs = ["203.0.113.0/24"]
+certificate_ids      = ["ocid1.certificate.oc1.iad.replace-me"]
+
+# document_models_json = <<-JSON
+# [{"name":"NH license v1","model_id":"ocid1.aidocumentcustommodel.oc1...","region":"us-ashburn-1"}]
+# JSON

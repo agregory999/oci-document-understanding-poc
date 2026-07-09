@@ -145,12 +145,10 @@ def analyze_document_image(
     result = normalize_document_response(raw, side)
     LOGGER.info(
         "OCI extraction methods for %s: requested=TEXT_EXTRACTION,KEY_VALUE_EXTRACTION "
-        "key_value=%s text_model=%s barcode_model=%s barcode_source=%s",
+        "key_value=%s text_model=%s",
         side,
         "custom" if model_id else f"pretrained_{document_type.lower()}",
         raw.get("text_extraction_model_version") or "not_reported",
-        raw.get("bar_code_extraction_model_version") or "not_reported",
-        result.barcode_source or "not_applicable",
     )
     LOGGER.info(
         "OCI analysis completed for %s image: pages=%d fields=%d",

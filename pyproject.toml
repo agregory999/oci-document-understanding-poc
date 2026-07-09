@@ -22,7 +22,6 @@ dev = [
 [tool.hatch.build.targets.wheel]
 only-include = [
   "app.py",
-  "barcode_service.py",
   "config.py",
   "logging_config.py",
   "models.py",

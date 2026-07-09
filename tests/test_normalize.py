@@ -10,7 +10,6 @@ import pytest
 
 import oci_client
 from app import minimal_display_fields
-from barcode_service import extract_barcode_text
 from config import ConfigurationError, Settings
 from models import DocumentResult, ExtractedField
 from normalize import normalize_document_response
@@ -64,7 +63,7 @@ def test_minimal_view_displays_all_fields_from_custom_model_schemas() -> None:
     ]
 
 
-def test_normalize_extracts_fields_text_and_back_barcode_output() -> None:
+def test_normalize_extracts_fields_and_ocr_text_from_back_image() -> None:
     """OCI fields and OCR content are exposed in the app's stable schema."""
     raw = {
         "document_type": "OTHER",
@@ -74,7 +73,6 @@ def test_normalize_extracts_fields_text_and_back_barcode_output() -> None:
                     {"field_name": "First Name", "field_value": "Ada", "confidence": 0.99}
                 ],
                 "lines": [{"text": "OCR text"}],
-                "barcodes": [{"text": "ANSI 636000"}],
             }
         ],
     }
@@ -84,8 +82,7 @@ def test_normalize_extracts_fields_text_and_back_barcode_output() -> None:
     assert result.fields[0].name == "First Name"
     assert result.fields[0].value == "Ada"
     assert result.fields[0].confidence == 0.99
-    assert "ANSI 636000" in result.text
-    assert "ANSI 636000" in result.barcode_text
+    assert "OCR text" in result.text
     assert result.metadata == {"document_type": "OTHER"}
 
 
@@ -110,38 +107,6 @@ def test_normalize_extracts_oci_nested_driver_license_fields() -> None:
     assert result.fields[0].name == "FirstName"
     assert result.fields[0].value == "Ada"
     assert result.fields[0].confidence == 0.91
-
-
-def test_barcode_output_formats_common_aamva_tags() -> None:
-    """AAMVA barcode tags are rendered as readable labeled lines."""
-    result = extract_barcode_text("@ANSI 636000\nDAQ123456\nDCSDOE\nDACJANE")
-
-    assert result == (
-        "AAMVA header: ANSI 636000\nLicense number: 123456\nLast name: DOE\nFirst name: JANE"
-    )
-
-
-def test_barcode_output_formats_weight_tag() -> None:
-    """AAMVA DAW data is exposed as Weight."""
-    assert extract_barcode_text("DAW165") == "Weight: 165"
-
-
-def test_normalize_identifies_explicit_oci_barcode_objects() -> None:
-    """OCI's serialized ``bar_codes`` field is distinguished from OCR fallback."""
-    result = normalize_document_response(
-        {"pages": [{"bar_codes": [{"value": "DAQ123456", "code_type": "PDF417"}]}]},
-        "back",
-    )
-
-    assert result.barcode_source == "OCI barcode object"
-    assert "License number: 123456" in result.barcode_text
-
-
-def test_normalize_warns_when_back_barcode_uses_ocr_fallback(caplog) -> None:
-    """Operators can distinguish OCR text from an OCI barcode object in logs."""
-    normalize_document_response({"pages": [{"lines": [{"text": "OCR text"}]}]}, "back")
-
-    assert "OCR fallback instead of a barcode-verified result" in caplog.text
 
 
 def test_normalize_handles_null_optional_oci_field_lists() -> None:

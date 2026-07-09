@@ -1,0 +1,10 @@
+.git
+.venv
+.pytest_cache
+.ruff_cache
+__pycache__
+*.py[cod]
+tests
+*.json
+!driver_license_all_states_schema.json
+infra
