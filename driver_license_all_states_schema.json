@@ -1,0 +1,77 @@
+[
+  {
+    "key": "FirstName",
+    "dataType": "string",
+    "description": "The license holder's given name. Read the value next to labels such as FIRST NAME or GIVEN NAME. Do not include the middle or last name."
+  },
+  {
+    "key": "MiddleName",
+    "dataType": "string",
+    "description": "The license holder's middle name or middle initial, when present. Do not infer a value when it is not printed."
+  },
+  {
+    "key": "LastName",
+    "dataType": "string",
+    "description": "The license holder's family name. Read the value next to LAST NAME or SURNAME."
+  },
+  {
+    "key": "DateOfBirth",
+    "dataType": "date",
+    "description": "The license holder's date of birth. Do not extract the issue date or expiration date."
+  },
+  {
+    "key": "DocumentNumber",
+    "dataType": "string",
+    "description": "The driver's license number or document number printed on the front. Do not extract the document discriminator or inventory control number from the barcode."
+  },
+  {
+    "key": "IssueDate",
+    "dataType": "date",
+    "description": "The date this driver's license was issued. Do not extract the expiration date."
+  },
+  {
+    "key": "ExpiryDate",
+    "dataType": "date",
+    "description": "The date this driver's license expires."
+  },
+  {
+    "key": "Address",
+    "dataType": "string",
+    "description": "The full residential street address printed on the license. Include adjacent address lines as one value, but exclude city, state, and postal code when they are separate fields."
+  },
+  {
+    "key": "City",
+    "dataType": "string",
+    "description": "The city or town in the license holder's address."
+  },
+  {
+    "key": "State",
+    "dataType": "string",
+    "description": "The state, province, territory, or other issuing jurisdiction printed in the license holder's address. Preserve the abbreviation or full jurisdiction name exactly as printed."
+  },
+  {
+    "key": "PostalCode",
+    "dataType": "string",
+    "description": "The ZIP or postal code in the license holder's address. Preserve leading zeroes."
+  },
+  {
+    "key": "Gender",
+    "dataType": "string",
+    "description": "The sex or gender value printed on the license, commonly next to SEX or GENDER."
+  },
+  {
+    "key": "Height",
+    "dataType": "string",
+    "description": "The license holder's height. Extract the printed value and unit exactly as shown, such as 5-10, 5 ft 10 in, 178 cm, or 510. Do not infer height from the photograph or other fields."
+  },
+  {
+    "key": "Weight",
+    "dataType": "string",
+    "description": "The license holder's weight. Extract the printed value and unit exactly as shown, such as 165 lb, 075 kg, or 165. Do not infer a value when it is not printed."
+  },
+  {
+    "key": "Eyes",
+    "dataType": "string",
+    "description": "The license holder's eye-color code or value, commonly next to EYES or EYE COLOR. Return the value exactly as printed, including a three-letter code such as BLU, BRO, GRN, GRY, HAZ, or BLK. For New Hampshire licenses, the code appears directly to the right of the printed label '19 Eyes'. Do not extract the adjacent height, weight, sex, or class value."
+  }
+]
